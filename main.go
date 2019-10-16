@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -18,6 +19,10 @@ const (
 )
 
 func main() {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
 	proxyURL := os.Getenv("GOPROXY")
 	if proxyURL == "" {
 		log.Fatalf("no GOPROXY set!")
@@ -32,8 +37,9 @@ func main() {
 	r.Handle(pathLatest, latest(proxyURL, stg)).Methods("GET")
 
 	loggedRouter := handlers.LoggingHandler(os.Stdout, r)
-	log.Print("Serving on port 8081")
-	if err := http.ListenAndServe(":8081", loggedRouter); err != nil {
+	log.Printf("Serving on port %s", port)
+	portStr := fmt.Sprintf(":%s", port)
+	if err := http.ListenAndServe(portStr, loggedRouter); err != nil {
 		log.Printf("The server crashed! (%s)", err)
 		os.Exit(1)
 	}
